@@ -41,6 +41,11 @@ pip install -r requirements.txt
 
 Alternatively, you can also use other Python version manager or virtual environments such as [pyenv](https://github.com/pyenv/pyenv) or [docker](https://www.docker.com/) to you prefer.
 
+## Data
+The dataset used for this assignment is a subset of [CoNLL 2003](https://aclanthology.org/W03-0419.pdf), the most famous benchmark dataset for NER.
+For this assignment, we subsampled 1000 training data points, and 100 points for validation and test.
+The data is already pre-processed for you and stored in the `./data/` directory as `.json` files.
+
 ## Run
 
 If you are using a Unix-like system such as Linux or MacOS, you can run the code through the provided `run.sh` file.
