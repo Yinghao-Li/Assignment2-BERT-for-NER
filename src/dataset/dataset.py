@@ -1,6 +1,6 @@
 """
 # Author: Yinghao Li
-# Modified: September 13th, 2023
+# Modified: October 16th, 2023
 # ---------------------------------------
 # Description: dataset loading and processing
 """
@@ -116,6 +116,17 @@ class Dataset(torch.utils.data.Dataset):
         # Hint: labels corresponding to [CLS], [SEP], and non-first subword tokens should be masked out.
         # You should store the updated label sequence in the `bert_lbs_list` variable.
         # --- TODO: start of your code ---
+
+        for idx, (bert_tk_idx_list, lbs) in enumerate(zip(self._token_ids, self._lbs)):
+            word_ids = tokenized_text.word_ids(idx)
+
+            word_ids_shifted_left = np.asarray([-100] + word_ids[:-1])
+            word_ids = np.asarray(word_ids)
+            is_first_wordpiece = (word_ids_shifted_left != word_ids) & (word_ids != None)
+
+            bert_lbs = torch.full((len(bert_tk_idx_list),), -100)
+            bert_lbs[is_first_wordpiece] = torch.tensor([lb2idx[lb] for lb in lbs])
+            bert_lbs_list.append(bert_lbs)
 
         # --- TODO: end of your code ---
 

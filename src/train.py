@@ -1,6 +1,6 @@
 """
 # Author: Yinghao Li
-# Modified: September 13th, 2023
+# Modified: October 16th, 2023
 # ---------------------------------------
 # Description: Trainer class for training BERT for sequence labeling
 """
@@ -146,6 +146,13 @@ class Trainer:
             # `train_loss` is the summarized loss for all tokens involved in backpropagation.
             # --- TODO: start of your code ---
 
+            loss.backward()
+            n_tks += torch.sum(batch.labels != -100).cpu()
+            train_loss += loss.detach().cpu() * torch.sum(batch.labels != -100).cpu()
+            self._optimizer.step()
+            self._scheduler.step()
+            self._optimizer.zero_grad()
+
             # --- TODO: end of your code ---
 
         return train_loss / n_tks
@@ -169,6 +176,12 @@ class Trainer:
         # Compute the loss for the batch of data.
         # Your result should match the result from `outputs.loss`.
         # --- TODO: start of your code ---
+
+        mask = lbs != -100
+        logits = logits[mask]
+        lbs = lbs[mask]
+        loss = self._loss(logits, lbs)
+        return loss
 
         # --- TODO: end of your code ---
 
@@ -194,9 +207,23 @@ class Trainer:
 
         pred_lbs: list[list[str]] = None
 
-        # TODO: Predicted labels for each sample in the dataset and stored in `pred_lbs`, a list of list of strings.
-        # TODO: The string elements represent the enitity labels, such as "O" or "B-PER".
+        # Predicted labels for each sample in the dataset and stored in `pred_lbs`, a list of list of strings.
+        # The string elements represent the enitity labels, such as "O" or "B-PER".
         # --- TODO: start of your code ---
+
+        pred_lbs = list()
+        with torch.no_grad():
+            for batch in data_loader:
+                batch.to(self._device)
+
+                logits = self._model(input_ids=batch.input_ids, attention_mask=batch.attention_mask).logits
+                pred_ids = logits.argmax(-1).detach().cpu()
+
+                pred_lb_batch = [
+                    [self._config.bio_label_types[i] for i in pred[lbs >= 0]]
+                    for lbs, pred in zip(batch.labels.cpu(), pred_ids)
+                ]
+                pred_lbs += pred_lb_batch
 
         # --- TODO: end of your code ---
 
